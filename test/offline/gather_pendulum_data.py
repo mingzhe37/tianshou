@@ -32,9 +32,9 @@ def get_args():
     parser.add_argument("--epoch", type=int, default=7)
     parser.add_argument("--step-per-epoch", type=int, default=8000)
     parser.add_argument("--batch-size", type=int, default=256)
-    parser.add_argument("--training-num", type=int, default=10)
+    parser.add_argument("--training-num", type=int, default=16)
     parser.add_argument("--test-num", type=int, default=10)
-    parser.add_argument("--step-per-collect", type=int, default=10)
+    parser.add_argument("--step-per-collect", type=int, default=16)
     parser.add_argument("--update-per-step", type=float, default=0.125)
     parser.add_argument("--logdir", type=str, default="log")
     parser.add_argument("--render", type=float, default=0.0)
@@ -69,7 +69,7 @@ def gather_data():
     args.action_shape = env.action_space.shape or env.action_space.n
     args.max_action = env.action_space.high[0]
     if args.reward_threshold is None:
-        default_reward_threshold = {"Pendulum-v0": -250, "Pendulum-v1": -250}
+        default_reward_threshold = {"Pendulum-v0": -250, "Pendulum-v1": -50}
         args.reward_threshold = default_reward_threshold.get(args.task, env.spec.reward_threshold)
     # you can also use tianshou.env.SubprocVectorEnv
     # train_envs = gym.make(args.task)
@@ -99,6 +99,8 @@ def gather_data():
     )
     critic = Critic(net_c, device=args.device).to(args.device)
     critic_optim = torch.optim.Adam(critic.parameters(), lr=args.critic_lr)
+    critic2 = Critic(net_c, device=args.device).to(args.device)
+    critic2_optim = torch.optim.Adam(critic.parameters(), lr=args.critic_lr)
 
     if args.auto_alpha:
         target_entropy = -np.prod(env.action_space.shape)
@@ -109,8 +111,10 @@ def gather_data():
     policy = SACPolicy(
         actor=actor,
         actor_optim=actor_optim,
-        critic=critic,
-        critic_optim=critic_optim,
+        critic1=critic,
+        critic1_optim=critic_optim,
+        critic2=critic2,
+        critic2_optim=critic2_optim,
         tau=args.tau,
         gamma=args.gamma,
         alpha=args.alpha,

@@ -76,7 +76,7 @@ def test_gail(args=get_args()):
         buffer = gather_data()
     env = gym.make(args.task)
     if args.reward_threshold is None:
-        default_reward_threshold = {"Pendulum-v0": -1100, "Pendulum-v1": -1100}
+        default_reward_threshold = {"Pendulum-v0": -1100, "Pendulum-v1": -200}
         args.reward_threshold = default_reward_threshold.get(args.task, env.spec.reward_threshold)
     args.state_shape = env.observation_space.shape or env.observation_space.n
     args.action_shape = env.action_space.shape or env.action_space.n
