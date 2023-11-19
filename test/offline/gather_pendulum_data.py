@@ -90,17 +90,25 @@ def gather_data():
         unbounded=True,
     ).to(args.device)
     actor_optim = torch.optim.Adam(actor.parameters(), lr=args.actor_lr)
-    net_c = Net(
+    net_c1 = Net(
         args.state_shape,
         args.action_shape,
         hidden_sizes=args.hidden_sizes,
         concat=True,
         device=args.device,
     )
-    critic = Critic(net_c, device=args.device).to(args.device)
-    critic_optim = torch.optim.Adam(critic.parameters(), lr=args.critic_lr)
-    critic2 = Critic(net_c, device=args.device).to(args.device)
-    critic2_optim = torch.optim.Adam(critic.parameters(), lr=args.critic_lr)
+    critic1 = Critic(net_c1, device=args.device).to(args.device)
+    critic1_optim = torch.optim.Adam(critic1.parameters(), lr=args.critic_lr)
+
+    net_c2 = Net(
+        args.state_shape,
+        args.action_shape,
+        hidden_sizes=args.hidden_sizes,
+        concat=True,
+        device=args.device,
+    )
+    critic2 = Critic(net_c2, device=args.device).to(args.device)
+    critic2_optim = torch.optim.Adam(critic2.parameters(), lr=args.critic_lr)
 
     if args.auto_alpha:
         target_entropy = -np.prod(env.action_space.shape)
@@ -111,8 +119,8 @@ def gather_data():
     policy = SACPolicy(
         actor=actor,
         actor_optim=actor_optim,
-        critic1=critic,
-        critic1_optim=critic_optim,
+        critic1=critic1,
+        critic1_optim=critic1_optim,
         critic2=critic2,
         critic2_optim=critic2_optim,
         tau=args.tau,
