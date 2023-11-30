@@ -61,7 +61,7 @@ def get_args():
     parser.add_argument("--recompute-adv", type=int, default=0)
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--save-interval", type=int, default=4)
-    parser.add_argument("--load-buffer-name", type=str, default=expert_file_name())
+    parser.add_argument("--load-buffer-name", type=str, default=r'test\offline\test_expert_dataset_Pendulum-v1.pkl')
     return parser.parse_known_args()[0]
 
 
