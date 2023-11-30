@@ -22,6 +22,18 @@ if __name__ == "__main__":
 else:  # pytest
     from test.offline.gather_pendulum_data import expert_file_name, gather_data
 
+class NoRewardEnv(gym.RewardWrapper):
+    """sets the reward to 0.
+
+    :param gym.Env env: the environment to wrap.
+    """
+
+    def __init__(self, env):
+        super().__init__(env)
+
+    def reward(self, reward):
+        """Set reward to 0."""
+        return np.zeros_like(reward)
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -64,16 +76,15 @@ def get_args():
     parser.add_argument("--load-buffer-name", type=str, default=r'test\offline\test_expert_dataset_Pendulum-v1.pkl')
     return parser.parse_known_args()[0]
 
-
 def test_gail(args=get_args()):
-    if os.path.exists(args.load_buffer_name) and os.path.isfile(args.load_buffer_name):
-        if args.load_buffer_name.endswith(".hdf5"):
-            buffer = VectorReplayBuffer.load_hdf5(args.load_buffer_name)
-        else:
-            with open(args.load_buffer_name, "rb") as f:
-                buffer = pickle.load(f)
-    else:
-        buffer = gather_data()
+    # if os.path.exists(args.load_buffer_name) and os.path.isfile(args.load_buffer_name):
+    #     if args.load_buffer_name.endswith(".hdf5"):
+    #         buffer = VectorReplayBuffer.load_hdf5(args.load_buffer_name)
+        # else:
+    with open(args.load_buffer_name, "rb") as f:
+        buffer = pickle.load(f)
+    # else:
+    #     buffer = gather_data()
     env = gym.make(args.task)
     if args.reward_threshold is None:
         default_reward_threshold = {"Pendulum-v0": -1100, "Pendulum-v1": -200}
@@ -83,7 +94,7 @@ def test_gail(args=get_args()):
     args.max_action = env.action_space.high[0]
     # you can also use tianshou.env.SubprocVectorEnv
     # train_envs = gym.make(args.task)
-    train_envs = DummyVectorEnv([lambda: gym.make(args.task) for _ in range(args.training_num)])
+    train_envs = DummyVectorEnv([lambda: NoRewardEnv(gym.make(args.task)) for _ in range(args.training_num)])
     # test_envs = gym.make(args.task)
     test_envs = DummyVectorEnv([lambda: gym.make(args.task) for _ in range(args.test_num)])
     # seed
